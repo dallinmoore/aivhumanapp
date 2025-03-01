@@ -1,15 +1,17 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 import os
 from werkzeug.utils import secure_filename
 import sys
 import time
 import traceback  # Add this for detailed error messages
+from flask_cors import CORS
 
 # Add model-inference-utility to path to import prediction module
 sys.path.append(os.path.join(os.path.dirname(__file__), 'model-inference-utility'))
 from predict import predict_single_image
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = "your_secret_key"  # Needed for flash messages
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -113,6 +115,38 @@ def upload():
     
     return render_template('app.html', 
                           message="Invalid file format. Please upload a PNG or JPEG image.")
+
+@app.route("/api/upload", methods=["POST"])
+def api_upload():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        try:
+            label, confidence = predict_single_image(filepath, MODEL_PATH)
+            confidence_pct = confidence * 100
+            
+            response = {
+                "prediction": label,
+                "confidence": confidence_pct
+            }
+            
+            os.remove(filepath)  # Clean up file after analysis
+            return jsonify(response), 200
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    return jsonify({"error": "Invalid file format"}), 400
 
 if __name__ == "__main__":
     app.run(debug=True)

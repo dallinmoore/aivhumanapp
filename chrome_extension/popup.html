@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Detector</title>
+    <link rel="stylesheet" href="popup.css">
+    <script src="popup.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload an Image</h2>
+        <!-- Hide default file input -->
+        <input type="file" id="fileInput" style="display:none">
+        <div id="dropZone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer;">
+            Drag and drop an image or click to select.
+        </div>
+        <button id="uploadBtn">Analyze</button>
+        <p id="result"></p>
+    </div>
+</body>
+</html>
