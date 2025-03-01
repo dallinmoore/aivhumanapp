@@ -15,3 +15,6 @@ __pycache__/
 # Flask stuff:
 instance/
 .webassets-cache
+
+# Other
+model-inference-utility/models/combined_model.h5
