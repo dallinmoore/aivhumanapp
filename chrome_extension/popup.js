@@ -4,27 +4,39 @@ async function uploadFile(file) {
         alert("Please select an image.");
         return;
     }
+    
+    console.log('Starting upload for file:', file.name); // Add logging
+    
     // Update the drop zone text to indicate file selection
-    document.getElementById("dropZone").innerText = "File uploaded";
+    document.getElementById("dropZone").innerText = "Uploading...";
     
     let formData = new FormData();
     formData.append("file", file);
 
     try {
-        // Use your machine's IP if 127.0.0.1 isn't resolving from the extension:
-        let response = await fetch("http://127.0.0.1:5000/api/upload", {
+        const response = await fetch("http://127.0.0.1:5000/api/upload", {
             method: "POST",
             body: formData
         });
-        let data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Upload response:', data); // Add logging
+        
         if (data.error) {
             document.getElementById("result").innerText = "Error: " + data.error;
+            document.getElementById("dropZone").innerText = "Drop image here";
         } else {
             document.getElementById("result").innerText = `Prediction: ${data.prediction} (Confidence: ${data.confidence}%)`;
+            document.getElementById("dropZone").innerText = "Drop another image here";
         }
     } catch (error) {
         console.error("Upload error:", error);
         document.getElementById("result").innerText = "Failed to connect to the server.";
+        document.getElementById("dropZone").innerText = "Drop image here";
     }
 }
 
@@ -66,10 +78,21 @@ dropZone.addEventListener("drop", async function(event) {
     event.preventDefault();
     event.stopPropagation();
     dropZone.style.borderColor = "#ccc";
-    let files = event.dataTransfer.files;
+    
+    // Get the dropped files
+    const files = event.dataTransfer.files;
     if (files.length > 0) {
-        // Update hidden file input and upload the file
-        document.getElementById("fileInput").files = files;
-        uploadFile(files[0]);
+        const file = files[0];
+        
+        // Create a new FileList-like object
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        
+        // Update the file input with the dropped file
+        const fileInput = document.getElementById("fileInput");
+        fileInput.files = dataTransfer.files;
+        
+        // Upload the file
+        uploadFile(file);
     }
 });
