@@ -1,22 +1,83 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>AI Image Detection</title>
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='site.css')}}" />
-    </head>
-
-    <body>
-        <div class="container">
-            <h1>AI Image Detection</h1>
-            <form action="{{ url_for('upload')}}" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" />
-                <input type="submit" value="Upload" />
-            </form>
-            <div class="result">
-                    <h2>Result</h2>
-                    <p></p>
-            </div>
+<head>
+    <meta charset="utf-8" />
+    <title>AI vs Human Image Detector</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='site.css')}}" />
+</head>
+<body>
+    <!-- Loading spinner overlay -->
+    <div id="loading" class="loading-container">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text">Analyzing image...</div>
         </div>
-    </body>
+    </div>
+    
+    <div class="container">
+        <h1>AI vs Human Image Detector</h1>
+        <form id="uploadForm" action="{{ url_for('upload')}}" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="fileInput" accept=".jpg, .jpeg, .png">
+            <input type="submit" id="submitBtn" value="Analyze Image">
+        </form>
+
+        {% if message %}
+        <div class="result">
+            <h2>Result</h2>
+            <p>{{ message }}</p>
+            
+            {% if detailed_message %}
+                <p>{{ detailed_message }}</p>
+            {% endif %}
+            
+            {% if note %}
+                <p class="note">{{ note }}</p>
+            {% endif %}
+            
+            {% if image_path %}
+                <div class="analyzed-image">
+                    <h3>Analyzed Image</h3>
+                    <img src="{{ url_for('static', filename=image_path) }}" alt="Analyzed image" style="max-width: 100%;">
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% if error_details %}
+        <div class="error-details">
+            <h3>Error Details</h3>
+            <pre>{{ error_details }}</pre>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+
+            // Check if a file is selected before enabling the submit button
+            fileInput.addEventListener('change', function() {
+                submitBtn.disabled = !this.files.length;
+            });
+
+            // Initially disable submit if no file is selected
+            submitBtn.disabled = !fileInput.files.length;
+
+            // Show loading spinner when form is submitted
+            form.addEventListener('submit', function() {
+                // Only show loading if a file is selected
+                if (fileInput.files.length > 0) {
+                    loading.style.display = 'flex';
+                    
+                    // Disable the submit button to prevent multiple submissions
+                    submitBtn.disabled = true;
+                    submitBtn.value = 'Analyzing...';
+                }
+            });
+        });
+    </script>
+</body>
 </html>
