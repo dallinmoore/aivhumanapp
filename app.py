@@ -3,6 +3,7 @@ import os
 from werkzeug.utils import secure_filename
 import sys
 import time
+import traceback  # Add this for detailed error messages
 
 # Add model-inference-utility to path to import prediction module
 sys.path.append(os.path.join(os.path.dirname(__file__), 'model-inference-utility'))
@@ -12,7 +13,8 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Needed for flash messages
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model-inference-utility', 'models', 'combined_model.h5')
+# Update the model path to point to the PyTorch model
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model-inference-utility', 'models', 'efficientnet.pth')
 
 # Create uploads directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -65,7 +67,7 @@ def upload():
                 
             # Create message
             message = f"Analysis complete: This image appears to be {label} " \
-                     f"(Confidence: {confidence_pct:.1f}%)"
+                     f"(Confidence: {confidence_pct:.6f}%)"
             
             detailed_message = f"The model has {strength} confidence that this image is {label.lower()}."
             
@@ -74,9 +76,11 @@ def upload():
             else:
                 note = None
             
-            # Generate a temporary copy for display if needed
-            # (You might want to create a smaller version for display and delete the original)
-            display_path = filepath
+            # Generate base64 of the image for display
+            import base64
+            with open(filepath, "rb") as img_file:
+                img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+                img_data_uri = f"data:image/jpeg;base64,{img_base64}"
             
             # Delete the original file after processing
             try:
@@ -91,11 +95,9 @@ def upload():
                                   note=note,
                                   prediction=label,
                                   probability=f"{confidence_pct:.1f}%",
-                                  # The image will still be accessible in browser cache for this session
-                                  image_path=os.path.join('uploads', filename))
+                                  image_data=img_data_uri)
                                   
         except Exception as e:
-            import traceback
             error_details = traceback.format_exc()
             
             # Also delete the file if there's an error

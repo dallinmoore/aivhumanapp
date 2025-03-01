@@ -40,6 +40,14 @@
                     <img src="{{ url_for('static', filename=image_path) }}" alt="Analyzed image" style="max-width: 100%;">
                 </div>
             {% endif %}
+            
+            <!-- Update the img tag to use the base64 image data -->
+            {% if image_data %}
+                <div class="analyzed-image">
+                    <h3>Analyzed Image</h3>
+                    <img src="{{ image_data }}" alt="Analyzed image" style="max-width: 100%;">
+                </div>
+            {% endif %}
         </div>
         {% endif %}
         

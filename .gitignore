@@ -17,4 +17,4 @@ instance/
 .webassets-cache
 
 # Other
-model-inference-utility/models/combined_model.h5
+model-inference-utility/models/
